@@ -1,0 +1,55 @@
+---
+- hosts: test
+  gather_facts: true
+  become: true
+
+  vars:
+    zbx_name: 'zabbix-agent'
+    zbx_dir: '/etc/zabbix'
+    zbx_config: 'zabbix_agentd.conf'
+    zbx_server: '10.200.189.1'
+    
+
+  tasks: 
+    # обновляем список пакетов
+    - name: update apt cache
+      apt:
+        update_cache: yes
+
+    # установить пакет {{ zbx_name }}
+    - name: install {{ zbx_name }} package
+      package:
+        name: {{ zbx_name }}
+        state: latest
+        # latest - обновить, если надо
+        # precent - сойдет любая
+
+# сделать в нужном виде файл {{ zbx_dir }}/zabbix-agentd.conf
+    - name: {{ zbx_dir }}/{{ zbx_config }}
+      temlate:
+        src: "templates/{{ zbx_config }}.j2"
+        dest: {{ zbx_dir }}/{{ zbx_config }}
+# рестартовать {{ zbx_name }}
+  notify:
+    - "restart {{ zbx_name }}"
+    - "check" {{ zbx_name }}  
+
+# убедиться, что сервис {{ zbx_name }} запущен и стартует при запуске
+    - name: enable and start {{ zbx_name }}
+      systemd: 
+        name: {{ zbx_name }}
+        state: started
+        enable: true
+        
+    - name: "check {{ zbx_name }} running"
+      command: "systemctl is-active {{ zbx_name }}"
+
+  handlers:
+    - name: restart {{ zbx_name }}
+      service: 
+        name: {{ zbx_name }}
+        state: restarted
+
+
+
+

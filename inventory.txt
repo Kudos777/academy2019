@@ -1,2 +1,10 @@
 [ubuntu18]
 test
+
+# test1 ansible_host=192.168.1.113
+# test2 ansible_host=myhost.mydomain.ru
+# test3 ansible_user=root
+# test3 ansible_user=root ansible_ssh_pass=root
+
+[development]
+server[01:05].mydomain.ru
